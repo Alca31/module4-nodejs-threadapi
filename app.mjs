@@ -1,15 +1,12 @@
-import { initEntities } from "./models/initEntity.mjs";
-import { Routes } from "routing.mjs";
+import { userRouter } from "./userRoute.mjs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { cookieParser } from "cookie-parser";
+import cookieParser from "cookie-parser";
 import express from "express";
 import listEndpoints from "express-list-endpoints";
 import cors from "cors";
-import { userModel } from "./models/userModel.mjs";
-import jwt from "jsonwebtoken";
-const tokenJWT = jwt.sign({ userid: 1 }, "1234");
-console.log(tokenJWT)
+import { userController } from "./controllers/userController.mjs";
+import { initEntities } from "./entities/initEntity.mjs";
 /**
  * Point d'entrée de l'application
  * Vous déclarer ici les routes de votre API REST
@@ -21,15 +18,19 @@ async function main() {
     const __dirname = path.dirname(__filename);
     try {
         const { User, Post, Comment } = await initEntities();
-        const userController = new userModel(User);
+        const user = new userController(User);
         const app = express();
-        Routes(userController)(app, "/users");
+        app.use(express.json());
+        app.use(cookieParser());
+        app.use(userRouter(user));
         // Route qui renvoie la page HTML d’inscription
         app.get("/register", (req, res) => {
             res.sendFile(path.join(__dirname, "views", "register.html"));
         });
-        app.get("/", (req, res) => {
+        app.get("/hello", (req, res) => {
+            //const user=userController.getAll();
             res.send("Hello world !");
+
         });
         console.log(listEndpoints(app));
 
@@ -40,4 +41,4 @@ async function main() {
         console.error("Error de chargement de Sequelize:", error);
     }
 }
-// main();
+main();

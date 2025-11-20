@@ -1,7 +1,7 @@
 import { loadSequelize } from "../database.mjs";
-import { loadUserEntity } from "./userEntity.mjs";
-import { loadCommentEntity } from "../old/models/commentEntity.mjs";
-import { loadPostEntity } from "../old/models/postEntity.mjs";
+import { loadUserEntity } from "../models/userEntity.mjs";
+import { loadCommentEntity } from "./commentEntity.mjs";
+import { loadPostEntity } from "./postEntity.mjs";
 
 export async function initEntities() {
     const sequelize = await loadSequelize();

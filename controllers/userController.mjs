@@ -1,5 +1,5 @@
-
-export class userModel {
+import jwt from "jsonwebtoken";
+export class userController {
 
     /**
      * 
@@ -26,10 +26,10 @@ export class userModel {
                 return res.status(400).json({ message: "il manque un champs, nom ou email ou mot de passe" })
             }
 
-            if (await userNameExists(userName)) {
+            if (await this.userNameExists(userName)) {
                 return res.status(400).json({ message: "userName déjà pris" });
             }
-            if (await userEmailExists(email)) {
+            if (await this.userEmailExists(email)) {
                 return res.status(400).json({ message: "email déjà utilisé" });
             }
 
@@ -52,26 +52,36 @@ export class userModel {
     }
 
     async userLogin(req, res) {
-        const { userName, password } = req.body;
-        if (!userName || !password) {return res.status(400).json({ message: "il manque un champs, nom ou mot de passe" })}
+        const { userName, email, password } = req.body;
+        if (!password||(!userName && !email)) { return res.status(400).json({ message: "il manque un champs, nom, email ou mot de passe" }) }
         const user = await userNameExists(userName);
+        const checkemail = await this.userEmailExists(email);
         const checkpassword = user.User.validpassword(password);
-        if (user && checkpassword) { return res.json(user); }
+        if ((user || checkemail) && checkpassword) {
+            const secret_key = "chutfautpasledire";
+            const secret_pass = process.env.JWT_SECRET || secret_key;
+            const token = jwt.sign({ userId: user.id }, secret_pass, { expiresIn: '4h' });
+            res.cookie('token', token, { httpOnly: true, samesite: "lax", secure: false });//en prod il faut changer false en true
+            return res.json(user??checkemail);
+        }
         else { return res.status(404).json({ error: "Utilisateur non trouvé" }); }
     }
 
     async getUserbyNameOrMail(req, res) {
-        const { userName, email} = req.body;
+        const { userName, email } = req.body;
         if (!userName || !email) {
             return res.status(400).json({ message: "il manque un champs, nom ou email" })
         }
-        const user = await userNameExists(userName);
-        const checkemail= await user.validpassword(password);
+        const user = await this.userNameExists(userName);
+        const checkemail = await this.userEmailExists(email);
         if (!user && !checkemail) { return res.status(404).json({ error: "Utilisateur non trouvé" }); }
-        else {  }
+        else {
+            if (user) {return res.json(user);}
+            return res.json(checkemail);
+        }
     }
 
-    async updateUser(req, res) {
+    async update(req, res) {
         try {
             const { userName, email, password } = req.body;
             const user = await this.User.findByPk(req.params.id);
@@ -84,7 +94,7 @@ export class userModel {
         }
     }
 
-    async removeUser(req, res) {
+    async remove(req, res) {
         const deleted = await this.User.destroy({ where: { id: req.params.id } });
         if (!deleted) return res.status(404).json({ error: "Utilisateur non trouvé" });
 
