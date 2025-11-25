@@ -28,13 +28,13 @@ export function loadUserEntity(sequelize) {
             password:
             {   
                 type: DataTypes.STRING,
-                freezeTableName: true,
+                allowNull: false,
                 validate:
                 {
                     len: [8, 125],
                 },
                 set(value){
-                    this.setDataValue(bcrypt.hashSync(value,10))
+                    this.setDataValue("password",bcrypt.hashSync(value,10))
                 },
             },
         })

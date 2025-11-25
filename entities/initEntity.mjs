@@ -1,5 +1,5 @@
 import { loadSequelize } from "../database.mjs";
-import { loadUserEntity } from "../models/userEntity.mjs";
+import { loadUserEntity } from "./userEntity.mjs";
 import { loadCommentEntity } from "./commentEntity.mjs";
 import { loadPostEntity } from "./postEntity.mjs";
 
@@ -19,7 +19,7 @@ export async function initEntities() {
     Post.hasMany(Comment);
     Comment.belongsTo(Post);
 
-    await sequelize.sync();
+    await sequelize.sync({});
 
     return { sequelize, User, Post, Comment };
 }
