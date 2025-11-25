@@ -16,10 +16,12 @@ export async function initEntities() {
     User.hasMany(Comment);
     Comment.belongsTo(User);
 
-    Post.hasMany(Comment);
+    Post.hasMany(Comment, { as: "comments" });
     Comment.belongsTo(Post);
 
-    await sequelize.sync({});
+    await sequelize.sync(
+       // {force: true} //décommenté si besoin de réecrer les table en dev à chaque démarage
+    );
 
     return { sequelize, User, Post, Comment };
 }

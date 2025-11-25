@@ -13,7 +13,7 @@ export class userController {
     async userNameExists(userName) {
         try 
         {
-            const user = await this.User.findOne({ where: { userName } });
+            const user = await this.User.findOne({ where: { [Op.like]: userName } });
             return user ?? false;
         } catch (error) 
         {
@@ -25,7 +25,7 @@ export class userController {
     async userEmailExists(email) {
         try 
         {
-            const checkemail = await this.User.findOne({ where: { email } });
+            const checkemail = await this.User.findOne({ where: { [Op.like]: email } });
             return checkemail ?? false;
         } catch (error) 
         {
@@ -55,7 +55,7 @@ export class userController {
 
     async getOne(req, res) {
         const user = await this.User.findByPk(req.params.id);
-        if (!user) return res.status(404).json({ error: "Utilisateur non trouvé" });
+        if (!user) {return res.status(404).json({ error: "Utilisateur non trouvé" });}
         return res.json(user);
     }
 
@@ -74,11 +74,10 @@ export class userController {
         else { return res.status(404).json({ error: "Utilisateur non trouvé" }); }
     }
 
-    async getUserbyNameorMail(req, res) {
+    async getUserbyNameorMail(req, res) 
+    {
         const { userName, email } = req.body;
-        if (!userName && !email) {
-            return res.status(400).json({ message: "il manque un champs, nom ou email" })
-        }
+        if (!userName && !email) {return res.status(400).json({ message: "il manque un champs, nom ou email" });}
         const user = await this.userNameExists(userName) || await this.userEmailExists(email);
         if (!user) { return res.status(404).json({ error: "Utilisateur non trouvé" }); }
         return res.json(user);
